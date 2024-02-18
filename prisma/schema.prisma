@@ -1,0 +1,521 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  username   String    @unique
+  password   String    @db.VarChar(100)
+  token      String?   @db.VarChar(100)
+  role       String?   @db.VarChar(16)
+  created_at DateTime? @default(now())
+
+  profiles Profile[]
+
+  @@map("users")
+}
+
+model Template {
+  id            Int      @id @default(autoincrement())
+  template_code String   @unique @db.VarChar(50)
+  template_name String   @db.VarChar(100)
+  path          String   @db.VarChar(32)
+  created_at    DateTime @default(now())
+
+  lms Lms[]
+
+  @@map("templates")
+}
+
+model Profile {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(50)
+  avatar     String?   @db.VarChar(200)
+  phone      String?   @db.VarChar(16)
+  address    String?   @db.VarChar(200)
+  created_at DateTime? @default(now())
+
+  username String @unique
+  user     User   @relation(fields: [username], references: [username])
+
+  lms Lms[]
+
+  @@map("profiles")
+}
+
+model Lms {
+  id         Int       @id @default(autoincrement())
+  lms_code   String    @unique @db.VarChar(50)
+  created_at DateTime? @default(now())
+
+  profile_id Int
+  profile    Profile @relation(fields: [profile_id], references: [id])
+
+  template_code String   @db.VarChar(50)
+  template      Template @relation(fields: [template_code], references: [template_code])
+
+  school School[]
+
+  @@map("lms")
+}
+
+model Teacher {
+  id           Int      @id @default(autoincrement())
+  teacher_code String   @unique @db.VarChar(50)
+  name         String?  @db.VarChar(50)
+  address      String?  @db.VarChar(200)
+  birthdate    String?  @db.VarChar(12)
+  born         DateTime @db.Date()
+  created_at   DateTime @default(now())
+
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  subject           Subject[]
+  class_schedule    Class_Schedule[]
+  assignment        Assignment[]
+  exam_questions    Exam_Questions[]
+  exam_answer       Exam_Answer[]
+  assignment_submit Assignment_Submit[]
+  assignment_scores Assignment_Score[]
+
+  @@map("teachers")
+}
+
+model School {
+  id          Int      @id @default(autoincrement())
+  school_code String   @unique @db.VarChar(10)
+  school_name String   @db.VarChar(100)
+  is_online   Int      @db.SmallInt()
+  created_at  DateTime @default(now())
+
+  lms_code String @db.VarChar(50)
+  lms      Lms    @relation(fields: [lms_code], references: [lms_code])
+
+  school_address SchoolAddress[]
+  faculty        Faculty[]
+  teacher        Teacher[]
+  students       Students[]
+
+  @@map("schools")
+}
+
+model Province {
+  id            Int      @id @default(autoincrement())
+  province_code String   @unique @db.VarChar(10)
+  province_name String   @db.VarChar(50)
+  created_at    DateTime @default(now())
+
+  city City[]
+
+  @@map("provinces")
+}
+
+model City {
+  id         Int       @id @default(autoincrement())
+  city_code  String    @unique @db.VarChar(10)
+  city_name  String    @db.VarChar(50)
+  created_at DateTime? @default(now())
+
+  province_code String   @db.VarChar(10)
+  province      Province @relation(fields: [province_code], references: [province_code])
+
+  district District[]
+
+  @@map("cities")
+}
+
+model District {
+  id            Int      @id @default(autoincrement())
+  district_code String   @unique @db.VarChar(10)
+  district_name String   @db.VarChar(50)
+  created_at    DateTime @default(now())
+
+  city_code String @db.VarChar(10)
+  city      City   @relation(fields: [city_code], references: [city_code])
+
+  school_address  SchoolAddress[]
+  student_address Student_Address[]
+
+  @@map("districts")
+}
+
+model SchoolAddress {
+  id               Int      @id @default(autoincrement())
+  complete_address String   @db.VarChar(200)
+  created_at       DateTime @default(now())
+
+  district_code String   @db.VarChar(10)
+  district      District @relation(fields: [district_code], references: [district_code])
+
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  @@map("school_addresses")
+}
+
+model Faculty {
+  id           Int      @id @default(autoincrement())
+  faculty_code String   @unique @db.VarChar(10)
+  faculty_name String   @db.VarChar(50)
+  created_at   DateTime @default(now())
+
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  major Major[]
+
+  @@map("faculties")
+}
+
+model Major {
+  id         Int       @id @default(autoincrement())
+  major_code String    @unique @db.VarChar(10)
+  major_name String    @db.VarChar(50)
+  created_at DateTime? @default(now())
+
+  faculty_code String  @db.VarChar(10)
+  faculty      Faculty @relation(fields: [faculty_code], references: [faculty_code])
+
+  grade    Grade[]
+  students Students[]
+
+  @@map("majors")
+}
+
+model Grade {
+  id         Int       @id @default(autoincrement())
+  grade_code String    @unique @db.VarChar(10)
+  grade_name String    @db.VarChar(50)
+  created_at DateTime? @default(now())
+
+  major_code String @db.VarChar(10)
+  major      Major  @relation(fields: [major_code], references: [major_code])
+
+  class    Class[]
+  students Students[]
+
+  @@map("grades")
+}
+
+model Class {
+  id         Int       @id @default(autoincrement())
+  class_code String    @unique @db.VarChar(10)
+  class_name String    @db.VarChar(50)
+  created_at DateTime? @default(now())
+
+  grade_code String @db.VarChar(10)
+  grade      Grade  @relation(fields: [grade_code], references: [grade_code])
+
+  class_schedule Class_Schedule[]
+  class_subject  Class_Subject[]
+  student        Student_Class[]
+  assignment     Assignment[]
+
+  @@map("classes")
+}
+
+model Subject {
+  id           Int      @id @default(autoincrement())
+  subject_code String   @unique @db.VarChar(10)
+  subject_name String   @db.VarChar(50)
+  created_at   DateTime @default(now())
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  class_schedule Class_Schedule[]
+  class_subject  Class_Subject[]
+
+  @@map("subjects")
+}
+
+model Class_Subject {
+  id                 Int      @id @default(autoincrement())
+  class_subject_code String   @unique @db.VarChar(10)
+  created_at         DateTime @default(now())
+
+  class_code String @db.VarChar(10)
+  class      Class  @relation(fields: [class_code], references: [class_code])
+
+  subject_code String  @db.VarChar(10)
+  subject      Subject @relation(fields: [subject_code], references: [subject_code])
+
+  materials Materials[]
+
+  @@map("class_subjects")
+}
+
+model Class_Schedule {
+  id                  Int      @id @default(autoincrement())
+  class_schedule_code String   @unique @db.VarChar(10)
+  days                String   @db.VarChar(50)
+  created_at          DateTime @default(now())
+
+  subject_code String  @db.VarChar(10)
+  subject      Subject @relation(fields: [subject_code], references: [subject_code])
+
+  class_code String @db.VarChar(10)
+  class      Class  @relation(fields: [class_code], references: [class_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  @@map("class_schedules")
+}
+
+model Materials {
+  id             Int      @id @default(autoincrement())
+  material_code  String   @unique @db.VarChar(10)
+  title          String   @db.VarChar(100)
+  subtitle       String   @db.VarChar(150)
+  description    String   @db.MediumText()
+  material_files String   @db.LongText()
+  created_at     DateTime @default(now())
+
+  class_subject_code String        @db.VarChar(10)
+  class_subject      Class_Subject @relation(fields: [class_subject_code], references: [class_subject_code])
+
+  @@map("materials")
+}
+
+model Students {
+  id           Int      @id @default(autoincrement())
+  student_code String   @unique @db.VarChar(10)
+  student_name String   @db.VarChar(50)
+  faculty_code String   @db.VarChar(10)
+  created_at   DateTime @default(now())
+
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  major_code String @db.VarChar(10)
+  major      Major  @relation(fields: [major_code], references: [major_code])
+
+  grade_code String @db.VarChar(10)
+  grade      Grade  @relation(fields: [grade_code], references: [grade_code])
+
+  student_address   Student_Address[]
+  student_class     Student_Class[]
+  assignment_submit Assignment_Submit[]
+  assignment_scores Assignment_Score[]
+  exam_submits      ExamSubmit[]
+
+  @@map("students")
+}
+
+model Student_Address {
+  id               Int      @id @default(autoincrement())
+  complete_address String   @db.VarChar(200)
+  created_at       DateTime @default(now())
+
+  district_code String   @db.VarChar(10)
+  district      District @relation(fields: [district_code], references: [district_code])
+
+  student_code String   @db.VarChar(10)
+  students     Students @relation(fields: [student_code], references: [student_code])
+
+  @@map("student_addresses")
+}
+
+model Student_Class {
+  id                 Int      @id @default(autoincrement())
+  student_class_code String   @unique @db.VarChar(10)
+  created_at         DateTime @default(now())
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  class_code String @db.VarChar(10)
+  class      Class  @relation(fields: [class_code], references: [class_code])
+
+  exam Exam[]
+
+  @@map("student_classes")
+}
+
+model Assignment {
+  id               Int      @id @default(autoincrement())
+  assignment_code  String   @unique @db.VarChar(10)
+  title            String   @db.VarChar(100)
+  description      String   @db.Text()
+  due_date         DateTime @db.DateTime()
+  assignment_files String   @db.Text()
+  created_at       DateTime @default(now())
+
+  class_code String @db.VarChar(10)
+  class      Class  @relation(fields: [class_code], references: [class_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  assignment_submit Assignment_Submit[]
+
+  @@map("assignments")
+}
+
+model Assignment_Submit {
+  id                     Int      @id @default(autoincrement())
+  assignment_submit_code String   @unique @db.VarChar(10)
+  submit_note            String   @db.VarChar(200)
+  created_at             DateTime @default(now())
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  assignment_code String     @db.VarChar(10)
+  assignment      Assignment @relation(fields: [assignment_code], references: [assignment_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  assignment_scores Assignment_Score[]
+
+  @@map("assignment_submits")
+}
+
+model Assignment_Score {
+  id                    Int      @id @default(autoincrement())
+  assignment_score_code String   @db.VarChar(10)
+  score                 Int      @db.Int()
+  created_at            DateTime @default(now())
+
+  assign_submit_code String            @db.VarChar(10)
+  assign_submits     Assignment_Submit @relation(fields: [assign_submit_code], references: [assignment_submit_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  @@map("assignment_scores")
+}
+
+model Exam {
+  id         Int       @id @default(autoincrement())
+  exam_code  String    @unique @db.VarChar(10)
+  time_limit Int       @db.Int()
+  created_at DateTime? @default(now())
+
+  student_class_code String        @db.VarChar(10)
+  student_class      Student_Class @relation(fields: [student_class_code], references: [student_class_code])
+
+  exam_schedule  Exam_Schedule[]
+  exam_questions Exam_Questions[]
+
+  @@map("exams")
+}
+
+model Exam_Schedule {
+  id                 Int      @id @default(autoincrement())
+  exam_schedule_code String   @unique @db.VarChar(10)
+  exam_date          DateTime @db.DateTime()
+  created_at         DateTime @default(now())
+
+  exam_code String @db.VarChar(10)
+  exam      Exam   @relation(fields: [exam_code], references: [exam_code])
+
+  exam_questions Exam_Questions[]
+
+  @@map("exam_schedules")
+}
+
+model Exam_Type {
+  id             Int      @id @default(autoincrement())
+  exam_type_code String   @unique @db.VarChar(10)
+  exam_type_name String   @db.VarChar(50)
+  created_at     DateTime @default(now())
+
+  exam_questions Exam_Questions[]
+
+  @@map("exam_types")
+}
+
+model Exam_Questions {
+  id            Int      @id @default(autoincrement())
+  question_code String   @unique @db.VarChar(10)
+  main_question String   @db.Text()
+  created_at    DateTime @default(now())
+  question_file String   @db.Text()
+  value         Int      @db.Int()
+
+  exam_code String @db.VarChar(10)
+  exam      Exam   @relation(fields: [exam_code], references: [exam_code])
+
+  exam_type_code String    @db.VarChar(10)
+  exam_type      Exam_Type @relation(fields: [exam_type_code], references: [exam_type_code])
+
+  exam_schedule_code String        @db.VarChar(10)
+  exam_schedule      Exam_Schedule @relation(fields: [exam_schedule_code], references: [exam_schedule_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  exam_answer  Exam_Answer[]
+  exam_submits ExamSubmit[]
+
+  @@map("exam_questions")
+}
+
+model Exam_Answer {
+  id                      Int      @id @default(autoincrement())
+  exam_answer_code        String   @unique @db.VarChar(10)
+  exam_answer_multichoice String?  @db.VarChar(5)
+  examm_answer_essay      String?  @db.Text()
+  created_at              DateTime @default(now())
+
+  question_code String         @db.VarChar(10)
+  question      Exam_Questions @relation(fields: [question_code], references: [question_code])
+
+  teacher_code String  @db.VarChar(10)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  exam_submits ExamSubmit[]
+
+  @@map("exam_answers")
+}
+
+model ExamSubmit {
+  id         Int      @id @default(autoincrement())
+  is_true    Boolean  @db.Bit(1)
+  created_at DateTime @default(now())
+
+  exam_submit_code String @unique @db.VarChar(24)
+
+  question_code String         @db.VarChar(10)
+  question      Exam_Questions @relation(fields: [question_code], references: [question_code])
+
+  exam_answer_code String      @db.VarChar(10)
+  answer           Exam_Answer @relation(fields: [exam_answer_code], references: [exam_answer_code])
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  exam_score ExamScore?
+
+  @@map("exam_submits")
+}
+
+model ExamScore {
+  id              Int      @id @default(autoincrement())
+  exam_score_code String   @unique @db.VarChar(10)
+  total_true      Int      @db.Int()
+  total_false     Int      @db.Int()
+  total_score     Int      @db.Int()
+  created_at      DateTime @default(now())
+
+  exam_submit_code String     @unique @db.VarChar(24)
+  exam_submit      ExamSubmit @relation(fields: [exam_submit_code], references: [exam_submit_code])
+
+  @@map("exam_scores")
+}
