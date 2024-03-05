@@ -34,17 +34,7 @@ const create = async (request) => {
 
 const createAddress = async (schoolCode, request) => {
     schoolCode = validate(getSchoolValidation, schoolCode);
-    request = validate(createSchoolAddressValidation, request)
-
-    const schoolAddress = await prismaClient.schoolAddress.findFirst({
-        where: {
-            school_code: schoolCode
-        }
-    });
-
-    if (schoolAddress) {
-        throw new ResponseError(400, 'School address is already exist');
-    }
+    request = validate(createSchoolAddressValidation, request);
 
     const school = await prismaClient.school.findFirst({
         where: {

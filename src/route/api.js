@@ -6,6 +6,8 @@ import schoolController from "../controller/school-controller.js";
 import templateController from "../controller/template-controller.js";
 import { superadminMiddleware } from "../middleware/superadmin-middleware.js";
 import lmsController from "../controller/lms-controller.js";
+import paymentController from "../controller/payment-controller.js";
+import facultyController from "../controller/faculty-controller.js";
 
 const userRouter = express.Router();
 
@@ -35,6 +37,15 @@ userRouter.post('/api/school', schoolController.create);
 userRouter.post('/api/school/:schoolCode', schoolController.createAddress);
 userRouter.get('/api/school', schoolController.all);
 userRouter.get('/api/school/detail', schoolController.get);
+
+// PAYMENT GATEWAY
+// POSTPONED
+userRouter.get('/api/payment/:orderID', paymentController.getStatusPayment);
+
+// FACULTY API
+userRouter.post('/api/faculty', facultyController.create);
+userRouter.patch('/api/faculty/:facultyCode', facultyController.update);
+userRouter.get('/api/faculty/:schoolCode', facultyController.all);
 
 export {
     userRouter
