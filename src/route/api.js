@@ -8,6 +8,10 @@ import { superadminMiddleware } from "../middleware/superadmin-middleware.js";
 import lmsController from "../controller/lms-controller.js";
 import paymentController from "../controller/payment-controller.js";
 import facultyController from "../controller/faculty-controller.js";
+import majorController from "../controller/major-controller.js";
+import gradeController from "../controller/grade-controller.js";
+import classController from "../controller/class-controller.js";
+import studentController from "../controller/student-controller.js";
 
 const userRouter = express.Router();
 
@@ -46,6 +50,30 @@ userRouter.get('/api/payment/:orderID', paymentController.getStatusPayment);
 userRouter.post('/api/faculty', facultyController.create);
 userRouter.patch('/api/faculty/:facultyCode', facultyController.update);
 userRouter.get('/api/faculty/:schoolCode', facultyController.all);
+userRouter.delete('/api/faculty/:facultyCode', facultyController.remove);
+
+// MAJOR API
+userRouter.post('/api/major', majorController.create);
+userRouter.patch('/api/major/:majorCode', majorController.update);
+userRouter.get('/api/major/:facultyCode', majorController.all);
+userRouter.delete('/api/major/:majorCode', majorController.remove);
+
+// GRADE API
+userRouter.post('/api/grade', gradeController.create);
+userRouter.get('/api/grade/:majorCode', gradeController.all);
+userRouter.patch('/api/grade/:gradeCode', gradeController.update);
+userRouter.delete('/api/grade/:gradeCode', gradeController.remove);
+
+// CLASS API
+userRouter.post('/api/class', classController.create);
+userRouter.get('/api/class/:gradeCode', classController.all);
+userRouter.patch('/api/class/:classCode', classController.update);
+userRouter.delete('/api/class/:classCode', classController.remove);
+
+// STUDENT API
+userRouter.post('/api/student', studentController.create);
+userRouter.post('/api/student/address', studentController.createAddress);
+userRouter.get('/api/student/school/:schoolCode', studentController.allBySchool);
 
 export {
     userRouter

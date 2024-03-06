@@ -73,8 +73,29 @@ const all = async (schoolCode) => {
     return faculty;
 }
 
+const remove = async (facultyCode) => {
+    facultyCode = validate(getFacultyValidation, facultyCode);
+
+    const faculty = await prismaClient.faculty.findFirst({
+        where: {
+            faculty_code: facultyCode
+        }
+    });
+
+    if (!faculty) {
+        throw new ResponseError(404, 'Faculty is not found');
+    }
+
+    return prismaClient.faculty.delete({
+        where: {
+            faculty_code: facultyCode
+        }
+    });
+}
+
 export default {
     create,
     update,
-    all
+    all,
+    remove
 }
