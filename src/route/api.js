@@ -74,6 +74,13 @@ userRouter.delete('/api/class/:classCode', classController.remove);
 userRouter.post('/api/student', studentController.create);
 userRouter.post('/api/student/address', studentController.createAddress);
 userRouter.get('/api/student/school/:schoolCode', studentController.allBySchool);
+userRouter.get('/api/student/faculty/:facultyCode', studentController.allByFaculty);
+userRouter.get('/api/student/major/:majorCode', studentController.allByMajor);
+userRouter.get('/api/student/grade/:gradeCode', studentController.allByGrade);
+userRouter.get('/api/student/detail/:studentCode', studentController.studentDetail);
+userRouter.patch('/api/student/address/:addressId', studentController.updateAddress);
+userRouter.post('/api/student/class', studentController.assignClass);
+userRouter.get('/api/student/class/:classCode', studentController.getStudentClass);
 
 export {
     userRouter
