@@ -73,8 +73,8 @@ model Teacher {
   teacher_code String   @unique @db.VarChar(50)
   name         String?  @db.VarChar(50)
   address      String?  @db.VarChar(200)
-  birthdate    String?  @db.VarChar(12)
-  born         DateTime @db.Date()
+  birthdate    DateTime @db.Date()
+  born         String   @db.VarChar(12)
   created_at   DateTime @default(now())
 
   school_code String @db.VarChar(10)
@@ -105,6 +105,7 @@ model School {
   faculty        Faculty[]
   teacher        Teacher[]
   students       Students[]
+  subjects       Subject[]
 
   @@map("schools")
 }
@@ -188,6 +189,7 @@ model Major {
 
   grade    Grade[]
   students Students[]
+  subjects Subject[]
 
   @@map("majors")
 }
@@ -230,7 +232,13 @@ model Subject {
   subject_name String   @db.VarChar(50)
   created_at   DateTime @default(now())
 
-  teacher_code String  @db.VarChar(10)
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  major_code String @db.VarChar(10)
+  major      Major  @relation(fields: [major_code], references: [major_code])
+
+  teacher_code String  @db.VarChar(50)
   teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
 
   class_schedule Class_Schedule[]

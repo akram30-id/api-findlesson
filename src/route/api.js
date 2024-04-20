@@ -12,8 +12,13 @@ import majorController from "../controller/major-controller.js";
 import gradeController from "../controller/grade-controller.js";
 import classController from "../controller/class-controller.js";
 import studentController from "../controller/student-controller.js";
+import teacherController from "../controller/teacher-controller.js";
+import subjectController from "../controller/subject-controller.js";
+import cors from "cors";
 
 const userRouter = express.Router();
+
+userRouter.use(cors());
 
 userRouter.use(authMiddleware);
 
@@ -81,6 +86,13 @@ userRouter.get('/api/student/detail/:studentCode', studentController.studentDeta
 userRouter.patch('/api/student/address/:addressId', studentController.updateAddress);
 userRouter.post('/api/student/class', studentController.assignClass);
 userRouter.get('/api/student/class/:classCode', studentController.getStudentClass);
+
+// TEACHER API
+userRouter.post('/api/teacher', teacherController.create);
+
+// SUBJCET API
+userRouter.post('/api/subject', subjectController.create);
+userRouter.get('/api/subject/teacher/:teacherCode', subjectController.getByTeacher);
 
 export {
     userRouter

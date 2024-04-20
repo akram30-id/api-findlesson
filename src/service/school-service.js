@@ -42,6 +42,16 @@ const createAddress = async (schoolCode, request) => {
         }
     });
 
+    const district = await prismaClient.district.findFirst({
+        where: {
+            district_code: request.district_code
+        }
+    });
+
+    if (!district) {
+        throw new ResponseError(404, 'District is not found.');
+    }
+
     if (!school) {
         throw new ResponseError(404, 'School is not found.')
     }
