@@ -93,6 +93,11 @@ userRouter.post('/api/teacher', teacherController.create);
 // SUBJCET API
 userRouter.post('/api/subject', subjectController.create);
 userRouter.get('/api/subject/teacher/:teacherCode', subjectController.getByTeacher);
+userRouter.patch('/api/subject/:subjectCode', subjectController.update);
+userRouter.delete('/api/subject/:subjectCode', subjectController.deleteSubject);
+
+userRouter.post('/api/subject/assign', subjectController.assingToClass);
+userRouter.post('/api/subject/class/:classCode', subjectController.getSubjectByClass);
 
 export {
     userRouter

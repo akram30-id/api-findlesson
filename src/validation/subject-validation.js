@@ -15,8 +15,14 @@ const updateSubjectValidation = Joi.object({
     major_code: Joi.string().max(10).required()
 });
 
+const assingToClassValidation = Joi.object({
+    class_code: Joi.string().max(10).required(),
+    subject_code: Joi.string().max(10).required(),
+})
+
 export {
     createSubjectValidation,
     getSubjectValidation,
-    updateSubjectValidation
+    updateSubjectValidation,
+    assingToClassValidation
 }
