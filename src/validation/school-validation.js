@@ -3,6 +3,8 @@ import Joi from "joi";
 const createSchoolValidation = Joi.object({
     school_name: Joi.string().max(100).required(),
     lms_code: Joi.string().max(50).required(),
+    clock_in_limit: Joi.string().max(8).required(),
+    clock_out_limit: Joi.string().max(8).required(),
 });
 
 const createSchoolAddressValidation = Joi.object({

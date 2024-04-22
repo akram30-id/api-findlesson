@@ -15,11 +15,11 @@ const create = async (req, res, next) => {
     }
 }
 
-const getByTeacher = async (req, res, next) => {
+const getByGrade = async (req, res, next) => {
     try {
-        const teacher = req.params.teacherCode;
+        const grade = req.params.gradeCode;
 
-        const result = await subjectService.getByTeacher(teacher);
+        const result = await subjectService.getSubjectByGrade(grade);
 
         res.status(200).json({
             data: result
@@ -43,7 +43,7 @@ const update = async (req, res, next) => {
     } catch (e) {
         next(e);
     }
-} 
+}
 
 const deleteSubject = async (req, res, next) => {
     try {
@@ -59,11 +59,11 @@ const deleteSubject = async (req, res, next) => {
     }
 }
 
-const assingToClass = async (req, res, next) => {
+const assignToSchedule = async (req, res, next) => {
     try {
         const request = req.body;
 
-        const result = await subjectService.assingToClass(request);
+        const result = await subjectService.assignSubjectToClassSchedule(request);
 
         res.status(200).json({
             data: result
@@ -73,15 +73,31 @@ const assingToClass = async (req, res, next) => {
     }
 }
 
-const getSubjectByClass = async (req, res, next) => {
+const getClassSchedule = async (req, res, next) => {
     try {
         const classCode = req.params.classCode;
-        
-        const result = await subjectService.getSubjectByClass(classCode);
+        const day = req.params.day;
+
+        const result = await subjectService.getClassSchedule(classCode, day);
 
         res.status(200).json({
             data: result
-        })
+        });
+    } catch (e) {
+        next(e)
+    }
+}
+
+const updateClassSchedule = async (req, res, next) => {
+    try {
+        const schedule = req.params.scheduleCode;
+        const request = req.body;
+
+        const result = await subjectService.updateClassSchedule(schedule, request);
+
+        res.status(200).json({
+            data: result
+        });
     } catch (e) {
         next(e)
     }
@@ -89,9 +105,10 @@ const getSubjectByClass = async (req, res, next) => {
 
 export default {
     create,
-    getByTeacher,
+    getByGrade,
     update,
     deleteSubject,
-    assingToClass,
-    getSubjectByClass
+    assignToSchedule,
+    getClassSchedule,
+    updateClassSchedule
 }

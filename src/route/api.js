@@ -92,12 +92,13 @@ userRouter.post('/api/teacher', teacherController.create);
 
 // SUBJCET API
 userRouter.post('/api/subject', subjectController.create);
-userRouter.get('/api/subject/teacher/:teacherCode', subjectController.getByTeacher);
+userRouter.get('/api/subject/grade/:gradeCode', subjectController.getByGrade);
 userRouter.patch('/api/subject/:subjectCode', subjectController.update);
 userRouter.delete('/api/subject/:subjectCode', subjectController.deleteSubject);
 
-userRouter.post('/api/subject/assign', subjectController.assingToClass);
-userRouter.post('/api/subject/class/:classCode', subjectController.getSubjectByClass);
+userRouter.post('/api/subject/schedule', subjectController.assignToSchedule);
+userRouter.get('/api/subject/schedule/:classCode/:day?', subjectController.getClassSchedule);
+userRouter.patch('/api/subject/schedule/:scheduleCode', subjectController.updateClassSchedule);
 
 export {
     userRouter

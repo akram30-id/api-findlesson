@@ -3,44 +3,40 @@ import { ResponseError } from "../error/response-error.js";
 import subjectModel from "../models/subject-model.js";
 import classModel from "../models/class-model.js";
 import { getClassValidation } from "../validation/class-validation.js";
-import { assingToClassValidation, createSubjectValidation, getSubjectValidation, updateSubjectValidation } from "../validation/subject-validation.js";
+import { assignToClassScheduleValidation, assingToClassValidation, createSubjectValidation, getDaysValidation, getScheduleValidation, getSubjectValidation, updateSubjectValidation } from "../validation/subject-validation.js";
 import { getTeacherValidation } from "../validation/teacher-validation.js";
 import { validate } from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
+import { getGradeValidation } from "../validation/grade-validation.js";
+const days = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
 
 const create = async (request) => {
-
     request = validate(createSubjectValidation, request);
 
-    const school = await prismaClient.school.findFirst({
+    const getGrade = await prismaClient.grade.findFirst({
         where: {
-            school_code: request.school_code,
+            grade_code: request.grade_code,
+            major_code: request.major_code
         },
         select: {
-            faculty: {
+            grade_code: true,
+            major: {
                 select: {
-                    major: {
-                        where: {
-                            major_code: request.major_code
+                    faculty: {
+                        select: {
+                            school_code: true
                         }
-                    },
-                    faculty_code: true
-                }
-            },
-            teacher: {
-                where: {
-                    teacher_code: request.teacher_code
-                },
-                select: {
-                    teacher_code: true
+                    }
                 }
             }
         }
     });
 
-    if (!school) {
-        throw new ResponseError(404, 'No data school is found.');
+    if (!getGrade) {
+        throw new ResponseError(404, 'Grade or major is not found.');
     }
+
+    const schoolCode = getGrade.major.faculty.school_code;
 
     const generate = uuid().toString();
     const subject_code = generate.substring(0, 8);
@@ -49,24 +45,23 @@ const create = async (request) => {
         data: {
             subject_code: subject_code,
             subject_name: request.title,
-            teacher_code: request.teacher_code,
+            grade_code: getGrade.grade_code,
             major_code: request.major_code,
-            school_code: request.school_code
+            school_code: schoolCode
         },
         select: {
-            subject_code: true,
             subject_name: true,
-            school_code: true,
-            teacher: {
-                select: {
-                    teacher_code: true,
-                    name: true
-                }
-            },
+            subject_code: true,
             major: {
                 select: {
                     major_code: true,
-                    major_name: true
+                    major_name: true,
+                    grade: {
+                        select: {
+                            grade_code: true,
+                            grade_name: true
+                        }
+                    }
                 }
             }
         }
@@ -74,41 +69,32 @@ const create = async (request) => {
 
 }
 
-const getByTeacher = async (teacher) => {
-    teacher = validate(getTeacherValidation, teacher);
+const getSubjectByGrade = async (grade) => {
+    grade = validate(getGradeValidation, grade);
 
-    const checkTeacher = await prismaClient.teacher.findFirst({
+    const getSubject = await prismaClient.subject.findMany({
         where: {
-            teacher_code: teacher
-        }
-    });
-
-    if (!checkTeacher) {
-        throw new ResponseError(404, 'Teacher is not found.');
-    }
-
-    return prismaClient.subject.findMany({
-        where: {
-            teacher_code: teacher
+            grade_code: grade
         },
         select: {
             subject_code: true,
             subject_name: true,
-            school_code: true,
-            teacher: {
-                select: {
-                    teacher_code: true,
-                    name: true
-                }
-            },
             major: {
                 select: {
                     major_code: true,
-                    major_name: true
+                    major_name: true,
+                    grade: {
+                        select: {
+                            grade_code: true,
+                            grade_name: true
+                        }
+                    }
                 }
             }
         }
     });
+
+    return getSubject;
 }
 
 const update = async (subject, request) => {
@@ -123,9 +109,7 @@ const update = async (subject, request) => {
 
     return prismaClient.subject.update({
         data: {
-            subject_name: request.title,
-            teacher_code: request.teacher_code,
-            major_code: request.major_code
+            subject_name: request.title
         },
         where: {
             subject_code: subject
@@ -133,17 +117,16 @@ const update = async (subject, request) => {
         select: {
             subject_code: true,
             subject_name: true,
-            school_code: true,
-            teacher: {
-                select: {
-                    teacher_code: true,
-                    name: true
-                }
-            },
             major: {
                 select: {
                     major_code: true,
-                    major_name: true
+                    major_name: true,
+                    grade: {
+                        select: {
+                            grade_code: true,
+                            grade_name: true
+                        }
+                    }
                 }
             }
         }
@@ -166,90 +149,217 @@ const deleteSubject = async (subject) => {
     });
 }
 
-const assingToClass = async (request) => {
-    request = validate(assingToClassValidation, request);
+const assignSubjectToClassSchedule = async (request) => {
+    request = validate(assignToClassScheduleValidation, request);
 
-    const checkClass = await classModel.getClass(request.class_code);
+    const getTeacher = await prismaClient.teacher.findFirst({
+        where: {
+            teacher_code: request.teacher_code
+        }
+    });
 
-    const checkSubject = await subjectModel.getSubject(request.subject_code);
+    const getClass = await prismaClient.class.findFirst({
+        where: {
+            class_code: request.class_code
+        }
+    });
 
-    if (!checkClass) {
-        throw new ResponseError(404, 'Class is not found');
+    const getSubject = await prismaClient.subject.findFirst({
+        where: {
+            subject_code: request.subject_code
+        }
+    });
+
+    if (!getTeacher) {
+        throw new ResponseError(404, 'Teacher is not found.');
     }
 
-    if (!checkSubject) {
+    if (!getClass) {
+        throw new ResponseError(404, 'Class is not found.');
+    }
+
+    if (!getSubject) {
         throw new ResponseError(404, 'Subject is not found.');
     }
 
-    const generate = uuid().toString();
-    const classSubjCode = generate.substring(0, 8);
-
-    return prismaClient.class_Subject.create({
-        data: {
-            class_subject_code: classSubjCode,
+    const isSubjectAssigned = await prismaClient.class_Schedule.findFirst({
+        where: {
             class_code: request.class_code,
+            day: request.day,
+            AND: [
+                {
+                    OR: [
+                        {
+                            clock_start: request.clock_start
+                        },
+                        {
+                            clock_end: request.clock_end
+                        }
+                    ]
+                }
+            ]
+        }
+    });
+
+    if (isSubjectAssigned) {
+        throw new ResponseError(400, 'Subject is already assigned.');
+    }
+
+    const generate = uuid().toString();
+    const classScheduleCode = generate.substring(0, 8);
+
+    return prismaClient.class_Schedule.create({
+        data: {
+            class_schedule_code: classScheduleCode,
+            clock_start: request.clock_start,
+            clock_end: request.clock_end,
+            day: request.day,
+            class_code: request.class_code,
+            teacher_code: request.teacher_code,
             subject_code: request.subject_code
         },
         select: {
-            class: {
-                select: {
-                    class_name: true,
-                    grade_code: true
-                }
-            },
+            class_schedule_code: true,
+            clock_start: true,
+            clock_end: true,
+            day: true,
             subject: {
                 select: {
-                    subject_name: true,
-                    teacher: {
-                        select: {
-                            name: true,
-                            teacher_code: true
-                        }
-                    }
+                    subject_code: true,
+                    subject_name: true
                 }
             }
         }
     })
 }
 
-const getSubjectByClass = async (classCode) => {
+const getClassSchedule = async (classCode, dayReq) => {
     classCode = validate(getClassValidation, classCode);
+    dayReq = validate(getDaysValidation, dayReq);
 
-    const checkClass = await classModel.getClass(classCode);
-    
-    if (!checkClass) {
-        throw new ResponseError(404, 'Class is not found.');
-    }
+    let response = {};
 
-    return prismaClient.class_Subject.findMany({
+    const getClassSchedule = await prismaClient.class_Schedule.findMany({
         where: {
             class_code: classCode
         },
         select: {
-            class_code: true,
-            subject_code: true,
-            class_subject_code: true,
+            day: true,
+            clock_start: true,
+            clock_end: true,
+            class_schedule_code: true,
+            subject: {
+                select: {
+                    subject_code: true,
+                    subject_name: true
+                }
+            },
             class: {
                 select: {
-                    class_name: true,
-                    grade: {
-                        select: {
-                            grade_code: true,
-                            grade_name: true
+                    class_code: true,
+                    class_name: true
+                }
+            },
+            teacher: {
+                select: {
+                    teacher_code: true,
+                    name: true
+                }
+            }
+        }
+    });
+
+    // Group results by day
+    days.forEach((day) => {
+
+        if (dayReq) {
+            if (dayReq.toUpperCase() !== day) {
+                return;
+            }
+        }
+
+        response[day] = [];
+
+        getClassSchedule.forEach((schedule) => {
+            if (schedule.day == day) {
+                delete schedule.day;
+                response[day].push(schedule);
+            }
+        });
+    });
+
+    return response;
+}
+
+const updateClassSchedule = async (schedule, request) => {
+    schedule = validate(getScheduleValidation, schedule);
+
+    const day = request.day;
+
+    const checkSchedule = await prismaClient.class_Schedule.findFirst({
+        where: {
+            class_schedule_code: schedule
+        }
+    });
+
+    if (!checkSchedule) {
+        throw new ResponseError(404, 'Schedule is not found');
+    }
+
+    const isScheduleExist = await prismaClient.class_Schedule.findFirst({
+        where: {
+            NOT: [
+                {
+                    subject_code: checkSchedule.subject_code
+                }
+            ],
+            AND: [
+                {
+                    OR: [
+                        {
+                            clock_start: request.clock_start
+                        },
+                        {
+                            clock_end: request.clock_end
                         }
-                    }
+                    ]
+                },
+                {
+                    day: day.toUpperCase()
+                }
+            ]
+        }
+    });
+
+    if (isScheduleExist) {
+        throw new ResponseError(400, 'Schedule Bentrok')
+    }
+
+    return prismaClient.class_Schedule.update({
+        where: {
+            class_schedule_code: schedule
+        },
+        data: {
+            day: request.day,
+            teacher_code: request.teacher_code,
+            clock_start: request.clock_start,
+            clock_end: request.clock_end
+        },
+        select: {
+            class_schedule_code: true,
+            day: true,
+            clock_start: true,
+            clock_end: true,
+            teacher: {
+                select: {
+                    teacher_code: true,
+                    name: true
                 }
             },
             subject: {
                 select: {
-                    subject_name: true,
-                    teacher: {
-                        select: {
-                            teacher_code: true,
-                            name: true,
-                            birthdate: true
-                        }
-                    }
+                    subject_code: true,
+                    subject_name: true
                 }
             }
         }
@@ -258,10 +368,12 @@ const getSubjectByClass = async (classCode) => {
 
 export default {
     create,
-    getByTeacher,
     update,
     deleteSubject,
-    assingToClass,
-    getSubjectByClass
+    assignSubjectToClassSchedule,
+    days,
+    getClassSchedule,
+    getSubjectByGrade,
+    updateClassSchedule
 }
 

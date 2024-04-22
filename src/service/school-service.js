@@ -27,7 +27,9 @@ const create = async (request) => {
             is_online: 1,
             school_code: schoolCode,
             school_name: request.school_name,
-            lms_code: request.lms_code
+            lms_code: request.lms_code,
+            clock_in_limit: request.clock_in_limit,
+            clock_out_limit: request.clock_out_limit
         }
     });
 }
