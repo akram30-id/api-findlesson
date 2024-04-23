@@ -103,6 +103,20 @@ const updateClassSchedule = async (req, res, next) => {
     }
 }
 
+const deleteSchedule = async (req, res, next) => {
+    try {
+        const schedule = req.params.scheduleCode;
+
+        const result = await subjectService.deleteSchedule(schedule);
+
+        res.status(200).json({
+            data: "ok"
+        });
+    } catch (e) {
+        next(e)
+    }
+}
+
 export default {
     create,
     getByGrade,
@@ -110,5 +124,6 @@ export default {
     deleteSubject,
     assignToSchedule,
     getClassSchedule,
-    updateClassSchedule
+    updateClassSchedule,
+    deleteSchedule
 }

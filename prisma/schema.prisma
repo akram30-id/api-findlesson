@@ -200,6 +200,7 @@ model Grade {
   id         Int       @id @default(autoincrement())
   grade_code String    @unique @db.VarChar(10)
   grade_name String    @db.VarChar(50)
+  grade_type String?   @db.VarChar(16)
   created_at DateTime? @default(now())
 
   major_code String @db.VarChar(10)
@@ -344,9 +345,9 @@ model Assignment {
   id               Int      @id @default(autoincrement())
   assignment_code  String   @unique @db.VarChar(10)
   title            String   @db.VarChar(100)
-  description      String   @db.Text()
+  description      String?  @db.Text()
   due_date         DateTime @db.DateTime()
-  assignment_files String   @db.Text()
+  assignment_files String?  @db.MediumText
   created_at       DateTime @default(now())
 
   class_code String @db.VarChar(10)

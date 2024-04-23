@@ -366,6 +366,26 @@ const updateClassSchedule = async (schedule, request) => {
     })
 }
 
+const deleteSchedule = async (scheduleCode) => {
+    scheduleCode = validate(getScheduleValidation, scheduleCode);
+
+    const checkSchedule = await prismaClient.class_Schedule.findFirst({
+        where: {
+            class_schedule_code: scheduleCode
+        }
+    });
+
+    if (!checkSchedule) {
+        throw new ResponseError(404, 'Schedule is not found.');
+    }
+
+    return prismaClient.class_Schedule.delete({
+        where: {
+            class_schedule_code: scheduleCode
+        }
+    });
+}
+
 export default {
     create,
     update,
@@ -374,6 +394,7 @@ export default {
     days,
     getClassSchedule,
     getSubjectByGrade,
-    updateClassSchedule
+    updateClassSchedule,
+    deleteSchedule
 }
 

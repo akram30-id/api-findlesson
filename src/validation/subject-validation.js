@@ -35,7 +35,7 @@ const updateClassScheduleValidation = Joi.object({
 
 const getDaysValidation = Joi.string().max(8).optional();
 
-const getScheduleValidation = Joi.string().max(10).optional();
+const getScheduleValidation = Joi.string().max(10).required();
 
 export {
     createSubjectValidation,

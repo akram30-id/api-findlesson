@@ -15,6 +15,8 @@ import studentController from "../controller/student-controller.js";
 import teacherController from "../controller/teacher-controller.js";
 import subjectController from "../controller/subject-controller.js";
 import cors from "cors";
+import attandanceController from "../controller/attandance-controller.js";
+import materialController from "../controller/material-controller.js";
 
 const userRouter = express.Router();
 
@@ -99,6 +101,17 @@ userRouter.delete('/api/subject/:subjectCode', subjectController.deleteSubject);
 userRouter.post('/api/subject/schedule', subjectController.assignToSchedule);
 userRouter.get('/api/subject/schedule/:classCode/:day?', subjectController.getClassSchedule);
 userRouter.patch('/api/subject/schedule/:scheduleCode', subjectController.updateClassSchedule);
+userRouter.delete('/api/subject/schedule/:scheduleCode', subjectController.deleteSchedule);
+
+// ATTANDANCE API
+userRouter.post('/api/attandance/:isClockOut?/:attandanceCode?', attandanceController.create);
+
+// MATERIAL API
+userRouter.post('/api/material', materialController.create);
+userRouter.get('/api/material/:subjectCode', materialController.getMaterial);
+userRouter.patch('/api/material/:materialCode', materialController.update);
+userRouter.delete('/api/material/:materialCode', materialController.deleteMaterial);
+userRouter.get('/api/material/search/:gradeCode', materialController.searchMaterial);
 
 export {
     userRouter
