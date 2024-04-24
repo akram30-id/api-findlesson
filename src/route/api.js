@@ -17,6 +17,7 @@ import subjectController from "../controller/subject-controller.js";
 import cors from "cors";
 import attandanceController from "../controller/attandance-controller.js";
 import materialController from "../controller/material-controller.js";
+import assignmentController from "../controller/assignment-controller.js";
 
 const userRouter = express.Router();
 
@@ -112,6 +113,11 @@ userRouter.get('/api/material/:subjectCode', materialController.getMaterial);
 userRouter.patch('/api/material/:materialCode', materialController.update);
 userRouter.delete('/api/material/:materialCode', materialController.deleteMaterial);
 userRouter.get('/api/material/search/:gradeCode', materialController.searchMaterial);
+
+// ASSIGNMENT API
+userRouter.post('/api/assignment', assignmentController.create)
+userRouter.get('/api/assignment/:subjectCode/:classCode', assignmentController.getByClassSubject)
+userRouter.delete('/api/assignment/:assignmentCode', assignmentController.deleteAssignment)
 
 export {
     userRouter

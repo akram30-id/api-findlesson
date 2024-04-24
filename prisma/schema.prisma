@@ -81,7 +81,6 @@ model Teacher {
   school      School @relation(fields: [school_code], references: [school_code])
 
   class_schedule    Class_Schedule[]
-  assignment        Assignment[]
   exam_questions    Exam_Questions[]
   exam_answer       Exam_Answer[]
   assignment_submit Assignment_Submit[]
@@ -246,6 +245,7 @@ model Subject {
 
   class_schedule Class_Schedule[]
   material       Materials[]
+  assignment     Assignment[]
 
   @@map("subjects")
 }
@@ -347,14 +347,14 @@ model Assignment {
   title            String   @db.VarChar(100)
   description      String?  @db.Text()
   due_date         DateTime @db.DateTime()
-  assignment_files String?  @db.MediumText
+  assignment_files String?  @db.LongText
   created_at       DateTime @default(now())
 
   class_code String @db.VarChar(10)
   class      Class  @relation(fields: [class_code], references: [class_code])
 
-  teacher_code String  @db.VarChar(10)
-  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+  subject_code String  @db.VarChar(10)
+  subjects     Subject @relation(fields: [subject_code], references: [subject_code])
 
   assignment_submit Assignment_Submit[]
 
