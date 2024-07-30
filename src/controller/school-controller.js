@@ -18,9 +18,13 @@ const all = async (req, res, next) => {
     try {
         const lmsCode = req.query.lms_code;
 
-        const result = await schoolService.all(lmsCode);
+        const page = req.query.page;
+        const size = req.query.size;
+
+        const result = await schoolService.all(lmsCode, page, size);
 
         res.status(200).json({
+            page: page,
             data: result
         });
     } catch (e) {

@@ -10,9 +10,15 @@ const createTeacherValidation = Joi.object({
     address: Joi.string().max(200).optional()
 });
 
+const assignToSubjectValidation = Joi.object({
+    teacher_code: Joi.string().max(20).required(),
+    subject_code: Joi.string().max(10).required()
+})
+
 const getTeacherValidation = Joi.string().max(50).required();
 
 export {
     createTeacherValidation,
-    getTeacherValidation
+    getTeacherValidation,
+    assignToSubjectValidation
 }
