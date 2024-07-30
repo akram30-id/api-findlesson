@@ -92,6 +92,8 @@ userRouter.get('/api/student/class/:classCode', studentController.getStudentClas
 
 // TEACHER API
 userRouter.post('/api/teacher', teacherController.create);
+userRouter.post('/api/teacher/assign', teacherController.assignToSubject);
+userRouter.get('/api/teacher/:subjectCode', teacherController.getTeacherBySubject);
 
 // SUBJCET API
 userRouter.post('/api/subject', subjectController.create);
@@ -116,8 +118,24 @@ userRouter.get('/api/material/search/:gradeCode', materialController.searchMater
 
 // ASSIGNMENT API
 userRouter.post('/api/assignment', assignmentController.create)
+userRouter.get('/api/assignment/file/:assignmentCode', assignmentController.getFilesByAssignment)
+userRouter.delete('/api/assignment/file/:fileCode', assignmentController.removeFile)
+userRouter.get('/api/assignment/multichoice/:assignmentCode', assignmentController.getAllMultichoice)
+userRouter.get('/api/assignment/multichoice/detail/:multichoiceCode', assignmentController.getMultichoiceDetail)
+userRouter.get('/api/assignment/submit/:assignmentCode', assignmentController.getAllSubmissions)
+userRouter.get('/api/assignment/submit/detail/:submitCode', assignmentController.getSubmissionDetail)
+userRouter.patch('/api/assignment/multichoice', assignmentController.updateMultichoice)
+userRouter.delete('/api/assignment/multichoice/:multichoiceCode', assignmentController.deleteMultichoice)
 userRouter.get('/api/assignment/:subjectCode/:classCode', assignmentController.getByClassSubject)
 userRouter.delete('/api/assignment/:assignmentCode', assignmentController.deleteAssignment)
+userRouter.patch('/api/assignment/score', assignmentController.updateScore)
+userRouter.patch('/api/assignment/:assignmentCode', assignmentController.updateAssignment)
+userRouter.get('/api/assignment/:assignmentCode', assignmentController.detailAssignment)
+userRouter.post('/api/assignment/file', assignmentController.createFileAssignment)
+userRouter.post('/api/assignment/score', assignmentController.createScore)
+userRouter.post('/api/assignment/multichoice', assignmentController.createMultichoice)
+userRouter.post('/api/assignment/submit', assignmentController.submitAssignment)
+userRouter.get('/api/assignment/submit/detail/student/:assignmentCode/:studentCode', assignmentController.getSubmissionStudent)
 
 export {
     userRouter
