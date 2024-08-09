@@ -2,7 +2,7 @@ import { prismaClient } from "../application/database.js";
 import { logger } from "../application/logging.js";
 import { ResponseError } from "../error/response-error.js";
 import { getLmsValidation } from "../validation/lms-validation.js";
-import { createSchoolAddressValidation, createSchoolValidation, getSchoolValidation } from "../validation/school-validation.js";
+import { createSchoolAddressValidation, createSchoolValidation, getSchoolValidation, pageSchoolValidation, sizeSchoolValidation } from "../validation/school-validation.js";
 import { validate } from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
 
@@ -27,7 +27,9 @@ const create = async (request) => {
             is_online: 1,
             school_code: schoolCode,
             school_name: request.school_name,
-            lms_code: request.lms_code
+            lms_code: request.lms_code,
+            clock_in_limit: request.clock_in_limit,
+            clock_out_limit: request.clock_out_limit
         }
     });
 }
@@ -42,6 +44,16 @@ const createAddress = async (schoolCode, request) => {
         }
     });
 
+    const district = await prismaClient.district.findFirst({
+        where: {
+            district_code: request.district_code
+        }
+    });
+
+    if (!district) {
+        throw new ResponseError(404, 'District is not found.');
+    }
+
     if (!school) {
         throw new ResponseError(404, 'School is not found.')
     }
@@ -55,7 +67,7 @@ const createAddress = async (schoolCode, request) => {
     });
 }
 
-const all = async (lmsCode) => {
+const all = async (lmsCode, page = 1, size = 10) => {
     lmsCode = validate(getLmsValidation, lmsCode);
 
     const lms = await prismaClient.lms.findFirst({
@@ -68,10 +80,17 @@ const all = async (lmsCode) => {
         throw new ResponseError(404, 'LMS is not found.');
     }
 
+    page = validate(pageSchoolValidation, page);
+    size = validate(sizeSchoolValidation, size);
+
+    const skip = (page - 1) * size;
+
     return prismaClient.school.findMany({
         where: {
             lms_code: lmsCode
-        }
+        },
+        take: size,
+        skip: skip
     });
 }
 

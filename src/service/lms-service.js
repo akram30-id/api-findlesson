@@ -1,4 +1,5 @@
 import { prismaClient } from "../application/database.js";
+import { logger } from "../application/logging.js";
 import { ResponseError } from "../error/response-error.js";
 import { createLmsValidation } from "../validation/lms-validation.js";
 import { getTemplateValidation } from "../validation/template-validation.js";
@@ -33,6 +34,8 @@ const create = async (templateCode, user) => {
         throw new ResponseError(404, 'Profile is not found');
     }
 
+    logger.info('profile id : ' + profile.id);
+
     const isLMSExist = await prismaClient.lms.count({
         where: {
             profile_id: profile.id
@@ -40,7 +43,7 @@ const create = async (templateCode, user) => {
     });
 
     if (isLMSExist >= 1) {
-        throw new ResponseError(401, 'LMS using this account is already exist');
+        throw new ResponseError(400, 'LMS using this account is already exist');
     }
 
     const lmsCode = uuid().toString();

@@ -105,7 +105,7 @@ const get = async (user) => {
             username: user
         },
         select: {
-            id: true,
+            name: true,
             address: true,
             avatar: true,
             phone: true,

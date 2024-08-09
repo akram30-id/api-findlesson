@@ -32,7 +32,7 @@ prismaClient.$on('warn', (e) => {
 });
 
 prismaClient.$on('info', (e) => {
-    logger.info(e);
+    logger.info(e.message);
 });
 
 prismaClient.$on('query', (e) => {

@@ -73,30 +73,30 @@ model Teacher {
   teacher_code String   @unique @db.VarChar(50)
   name         String?  @db.VarChar(50)
   address      String?  @db.VarChar(200)
-  birthdate    String?  @db.VarChar(12)
-  born         DateTime @db.Date()
+  birthdate    DateTime @db.Date()
+  born         String   @db.VarChar(12)
   created_at   DateTime @default(now())
 
   school_code String @db.VarChar(10)
   school      School @relation(fields: [school_code], references: [school_code])
 
-  subject           Subject[]
   class_schedule    Class_Schedule[]
-  assignment        Assignment[]
   exam_questions    Exam_Questions[]
   exam_answer       Exam_Answer[]
-  assignment_submit Assignment_Submit[]
   assignment_scores Assignment_Score[]
+  teacher_subject   TeacherSubject[]
 
   @@map("teachers")
 }
 
 model School {
-  id          Int      @id @default(autoincrement())
-  school_code String   @unique @db.VarChar(10)
-  school_name String   @db.VarChar(100)
-  is_online   Int      @db.SmallInt()
-  created_at  DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  school_code     String   @unique @db.VarChar(10)
+  school_name     String   @db.VarChar(100)
+  is_online       Int      @db.SmallInt()
+  clock_in_limit  String   @db.VarChar(8)
+  clock_out_limit String   @db.VarChar(8)
+  created_at      DateTime @default(now())
 
   lms_code String @db.VarChar(50)
   lms      Lms    @relation(fields: [lms_code], references: [lms_code])
@@ -105,6 +105,8 @@ model School {
   faculty        Faculty[]
   teacher        Teacher[]
   students       Students[]
+  subjects       Subject[]
+  attendance     Attandence[]
 
   @@map("schools")
 }
@@ -188,6 +190,7 @@ model Major {
 
   grade    Grade[]
   students Students[]
+  subjects Subject[]
 
   @@map("majors")
 }
@@ -196,6 +199,7 @@ model Grade {
   id         Int       @id @default(autoincrement())
   grade_code String    @unique @db.VarChar(10)
   grade_name String    @db.VarChar(50)
+  grade_type String?   @db.VarChar(16)
   created_at DateTime? @default(now())
 
   major_code String @db.VarChar(10)
@@ -203,6 +207,7 @@ model Grade {
 
   class    Class[]
   students Students[]
+  subject  Subject[]
 
   @@map("grades")
 }
@@ -217,7 +222,6 @@ model Class {
   grade      Grade  @relation(fields: [grade_code], references: [grade_code])
 
   class_schedule Class_Schedule[]
-  class_subject  Class_Subject[]
   student        Student_Class[]
   assignment     Assignment[]
 
@@ -230,35 +234,29 @@ model Subject {
   subject_name String   @db.VarChar(50)
   created_at   DateTime @default(now())
 
-  teacher_code String  @db.VarChar(10)
-  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+  school_code String @db.VarChar(10)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  major_code String @db.VarChar(10)
+  major      Major  @relation(fields: [major_code], references: [major_code])
+
+  grade_code String @db.VarChar(10)
+  grade      Grade  @relation(fields: [grade_code], references: [grade_code])
 
   class_schedule Class_Schedule[]
-  class_subject  Class_Subject[]
+  material       Materials[]
+  assignment     Assignment[]
+  teacher_class  TeacherSubject[]
 
   @@map("subjects")
-}
-
-model Class_Subject {
-  id                 Int      @id @default(autoincrement())
-  class_subject_code String   @unique @db.VarChar(10)
-  created_at         DateTime @default(now())
-
-  class_code String @db.VarChar(10)
-  class      Class  @relation(fields: [class_code], references: [class_code])
-
-  subject_code String  @db.VarChar(10)
-  subject      Subject @relation(fields: [subject_code], references: [subject_code])
-
-  materials Materials[]
-
-  @@map("class_subjects")
 }
 
 model Class_Schedule {
   id                  Int      @id @default(autoincrement())
   class_schedule_code String   @unique @db.VarChar(10)
-  days                String   @db.VarChar(50)
+  day                 String   @db.VarChar(50)
+  clock_start         String   @db.VarChar(8)
+  clock_end           String   @db.VarChar(8)
   created_at          DateTime @default(now())
 
   subject_code String  @db.VarChar(10)
@@ -267,10 +265,24 @@ model Class_Schedule {
   class_code String @db.VarChar(10)
   class      Class  @relation(fields: [class_code], references: [class_code])
 
-  teacher_code String  @db.VarChar(10)
+  teacher_code String  @db.VarChar(50)
   teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
 
   @@map("class_schedules")
+}
+
+model TeacherSubject {
+  id                   Int      @id @default(autoincrement())
+  teacher_subject_code String   @unique @db.VarChar(10)
+  created_at           DateTime @default(now())
+
+  teacher_code String  @db.VarChar(20)
+  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+
+  subject_code String  @db.VarChar(10)
+  subject      Subject @relation(fields: [subject_code], references: [subject_code])
+
+  @@map("teachers_subjects")
 }
 
 model Materials {
@@ -282,8 +294,8 @@ model Materials {
   material_files String   @db.LongText()
   created_at     DateTime @default(now())
 
-  class_subject_code String        @db.VarChar(10)
-  class_subject      Class_Subject @relation(fields: [class_subject_code], references: [class_subject_code])
+  subject_code String  @db.VarChar(10)
+  subject      Subject @relation(fields: [subject_code], references: [subject_code])
 
   @@map("materials")
 }
@@ -304,11 +316,13 @@ model Students {
   grade_code String @db.VarChar(10)
   grade      Grade  @relation(fields: [grade_code], references: [grade_code])
 
-  student_address   Student_Address[]
-  student_class     Student_Class[]
-  assignment_submit Assignment_Submit[]
-  assignment_scores Assignment_Score[]
-  exam_submits      ExamSubmit[]
+  student_address         Student_Address[]
+  student_class           Student_Class[]
+  assignment_submit       Assignment_Submit[]
+  assignment_scores       Assignment_Score[]
+  exam_submits            ExamSubmit[]
+  student_attendace       Attandence[]
+  assignment_multi_answer AssignmentMultichoiceAnswer[]
 
   @@map("students")
 }
@@ -344,29 +358,62 @@ model Student_Class {
 }
 
 model Assignment {
-  id               Int      @id @default(autoincrement())
-  assignment_code  String   @unique @db.VarChar(10)
-  title            String   @db.VarChar(100)
-  description      String   @db.Text()
-  due_date         DateTime @db.DateTime()
-  assignment_files String   @db.Text()
-  created_at       DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  assignment_code String   @unique @db.VarChar(10)
+  title           String   @db.VarChar(100)
+  description     String?  @db.Text()
+  due_date        DateTime @db.DateTime()
+  is_multiple     Int?     @db.SmallInt
+  created_at      DateTime @default(now())
 
   class_code String @db.VarChar(10)
   class      Class  @relation(fields: [class_code], references: [class_code])
 
-  teacher_code String  @db.VarChar(10)
-  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
+  subject_code String  @db.VarChar(10)
+  subjects     Subject @relation(fields: [subject_code], references: [subject_code])
 
   assignment_submit Assignment_Submit[]
+  assignment_multi  Assignment_Multichoice[]
+  assignment_files  AssignmentFiles[]
 
   @@map("assignments")
+}
+
+model Assignment_Multichoice {
+  id                    Int      @id @default(autoincrement())
+  assignment_multi_code String   @unique @db.VarChar(10)
+  question              String   @db.VarChar(200)
+  question_image        String?  @db.MediumText
+  choices               String   @db.VarChar(200)
+  answer_key            String   @db.VarChar(4)
+  created_at            DateTime @default(now())
+
+  assignment_code String     @db.VarChar(10)
+  assignment      Assignment @relation(fields: [assignment_code], references: [assignment_code])
+
+  assignment_multi_answer AssignmentMultichoiceAnswer[]
+
+  @@map("assignment_multichoice")
+}
+
+model AssignmentMultichoiceAnswer {
+  id     Int    @id @default(autoincrement())
+  answer String @db.VarChar(4)
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  assignment_multi_code String                 @db.VarChar(10)
+  assignment_multi      Assignment_Multichoice @relation(fields: [assignment_multi_code], references: [assignment_multi_code])
+
+  @@map("assignment_multichoice_answer")
 }
 
 model Assignment_Submit {
   id                     Int      @id @default(autoincrement())
   assignment_submit_code String   @unique @db.VarChar(10)
-  submit_note            String   @db.VarChar(200)
+  submit_note            String?  @db.VarChar(200)
+  submit_file            String?  @db.LongText
   created_at             DateTime @default(now())
 
   student_code String   @db.VarChar(10)
@@ -374,9 +421,6 @@ model Assignment_Submit {
 
   assignment_code String     @db.VarChar(10)
   assignment      Assignment @relation(fields: [assignment_code], references: [assignment_code])
-
-  teacher_code String  @db.VarChar(10)
-  teacher      Teacher @relation(fields: [teacher_code], references: [teacher_code])
 
   assignment_scores Assignment_Score[]
 
@@ -420,6 +464,8 @@ model Exam_Schedule {
   id                 Int      @id @default(autoincrement())
   exam_schedule_code String   @unique @db.VarChar(10)
   exam_date          DateTime @db.DateTime()
+  clock_start        String   @db.VarChar(8)
+  clock_end          String   @db.VarChar(8)
   created_at         DateTime @default(now())
 
   exam_code String @db.VarChar(10)
@@ -471,7 +517,7 @@ model Exam_Answer {
   id                      Int      @id @default(autoincrement())
   exam_answer_code        String   @unique @db.VarChar(10)
   exam_answer_multichoice String?  @db.VarChar(5)
-  examm_answer_essay      String?  @db.Text()
+  exam_answer_essay       String?  @db.Text()
   created_at              DateTime @default(now())
 
   question_code String         @db.VarChar(10)
@@ -518,4 +564,33 @@ model ExamScore {
   exam_submit      ExamSubmit @relation(fields: [exam_submit_code], references: [exam_submit_code])
 
   @@map("exam_scores")
+}
+
+model Attandence {
+  id              Int    @id @default(autoincrement())
+  attandence_code String @db.VarChar(10)
+  clock_in        String @db.VarChar(8)
+  clock_out       String @db.VarChar(8)
+  status          String @db.VarChar(10)
+  signature       String @db.LongText()
+
+  student_code String   @db.VarChar(10)
+  student      Students @relation(fields: [student_code], references: [student_code])
+
+  school_code String @db.VarChar(50)
+  school      School @relation(fields: [school_code], references: [school_code])
+
+  created_at DateTime @default(now())
+}
+
+model AssignmentFiles {
+  id         Int      @id @default(autoincrement())
+  file_code  String   @unique @db.VarChar(10)
+  file_path  String   @db.LongText
+  created_at DateTime @default(now())
+
+  assignment_code String     @db.VarChar(10)
+  assignment      Assignment @relation(fields: [assignment_code], references: [assignment_code])
+
+  @@map("assignment_files")
 }

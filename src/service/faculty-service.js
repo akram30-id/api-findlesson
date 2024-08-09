@@ -1,6 +1,7 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { createFacultyValidation, getFacultyValidation } from "../validation/faculty-validation.js";
+import facultyModel from "../models/faculty-model.js";
+import { createFacultyValidation, getFacultyValidation, pageFacultyValidation, sizeFacultyValidation } from "../validation/faculty-validation.js";
 import { getSchoolValidation } from "../validation/school-validation.js";
 import { validate } from "../validation/validation.js";
 import {v4 as uuid} from "uuid";
@@ -53,17 +54,37 @@ const update = async (facultyCode, request) => {
     });
 }
 
-const all = async (schoolCode) => {
+const all = async (schoolCode, page = 1, size = 10, search = null, facultyCode = null) => {
     schoolCode = validate(getSchoolValidation, schoolCode);
+
+    if (facultyCode) {
+        return facultyModel.getFaculty(facultyCode);
+    }
+
+    page = validate(pageFacultyValidation, page);
+    size = validate(sizeFacultyValidation, size);
+
+    const skip = (page - 1) * size;
+
+    // Create a filter for the search query
+    const searchFilter = search ? {
+        OR: [
+            { faculty_name: { contains: search, lte: 'insensitive' } },
+            { faculty_code: { contains: search, lte: 'insensitive' } }
+        ]
+    } : {};
 
     const faculty = await prismaClient.faculty.findMany({
         where: {
-            school_code: schoolCode
+            school_code: schoolCode,
+            ...searchFilter
         },
         select: {
             faculty_code: true,
             faculty_name: true
-        }
+        },
+        take: size,
+        skip: skip
     });
 
     if (faculty.length < 1) {
