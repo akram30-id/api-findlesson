@@ -34,9 +34,16 @@ const all = async (req, res, next) => {
     try {
         const schoolCode = req.params.schoolCode;
 
-        const result = await facultyService.all(schoolCode);
+        const page = req.query.page ?? 1;
+        const size = req.query.size ?? 10;
+        const search = req.query.search ?? null;
+
+        const facultyCode = req.query.faculty_code ?? null;
+
+        const result = await facultyService.all(schoolCode, page, size, search, facultyCode);
 
         res.status(200).json({
+            page: page,
             data: result
         });
     } catch (e) {
