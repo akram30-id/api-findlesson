@@ -33,7 +33,12 @@ const all = async (req, res, next) => {
     try {
         const facultyCode = req.params.facultyCode;
 
-        const result = await majorService.all(facultyCode);
+        const page = req.query.page ?? 1;
+        const size = req.query.size ?? 10;
+        const search = req.query.search ?? null;
+        const major = req.query.major ?? null;
+
+        const result = await majorService.all(facultyCode, page, size, search, major);
 
         res.status(200).json({
             data: result

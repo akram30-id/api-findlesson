@@ -7,7 +7,13 @@ const createMajorValidation = Joi.object({
 
 const getMajorValidation = Joi.string().max(10).required();
 
+const pageMajorValidation = Joi.number().min(1).positive().default(1);
+
+const sizeMajorValidation = Joi.number().min(1).positive().max(100).default(10);
+
 export {
     createMajorValidation,
-    getMajorValidation
+    getMajorValidation,
+    pageMajorValidation,
+    sizeMajorValidation
 }
