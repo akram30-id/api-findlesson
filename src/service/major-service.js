@@ -1,7 +1,8 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
+import { getMajor } from "../models/major-model.js";
 import { getFacultyValidation } from "../validation/faculty-validation.js";
-import { createMajorValidation, getMajorValidation } from "../validation/major-validation.js";
+import { createMajorValidation, getMajorValidation, pageMajorValidation, sizeMajorValidation } from "../validation/major-validation.js";
 import { validate } from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
 
@@ -53,7 +54,7 @@ const update = async (majorCode, request) => {
     });
 }
 
-const all = async (facultyCode) => {
+const all = async (facultyCode, page = 1, size = 10, search = null, majorCode = null) => {
     facultyCode = validate(getFacultyValidation, facultyCode);
 
     const faculty = await prismaClient.faculty.findFirst({
@@ -66,9 +67,38 @@ const all = async (facultyCode) => {
         throw new ResponseError(404, 'Faculty is not found');
     }
 
+    if (majorCode) {
+        const majorDetail = await getMajor(majorCode);
+
+        if (!majorDetail) {
+            throw new ResponseError(404, 'Major is not found.');
+        }
+        
+        return majorDetail;
+    }
+
+    page = validate(pageMajorValidation, page);
+    size = validate(sizeMajorValidation, size);
+
+    const skip = (page - 1) * size;
+
+    // Create a filter for the search query
+    const searchFilter = search ? {
+        OR: [
+            { major_name: { contains: search, lte: 'insensitive' } },
+            { major_code: { contains: search, lte: 'insensitive' } }
+        ]
+    } : {};
+
     return prismaClient.major.findMany({
         where: {
-            faculty_code: facultyCode
+            faculty_code: facultyCode,
+            ...searchFilter
+        },
+        skip: skip,
+        take: size,
+        orderBy: {
+            created_at: "desc"
         }
     });
 }
