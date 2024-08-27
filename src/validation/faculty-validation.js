@@ -7,7 +7,13 @@ const createFacultyValidation = Joi.object({
 
 const getFacultyValidation = Joi.string().max(10).required();
 
+const pageFacultyValidation = Joi.number().min(1).positive().default(1);
+
+const sizeFacultyValidation = Joi.number().min(1).positive().max(100).default(10);
+
 export {
     createFacultyValidation,
-    getFacultyValidation
+    getFacultyValidation,
+    pageFacultyValidation,
+    sizeFacultyValidation
 }
