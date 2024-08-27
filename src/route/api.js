@@ -18,15 +18,19 @@ import cors from "cors";
 import attandanceController from "../controller/attandance-controller.js";
 import materialController from "../controller/material-controller.js";
 import assignmentController from "../controller/assignment-controller.js";
+import { adminMiddleware } from "../middleware/admin-middleware.js";
 
 const userRouter = express.Router();
 
 userRouter.use(cors());
 
-userRouter.use(authMiddleware);
+userRouter.use(authMiddleware)
 
 // USER API
 userRouter.delete('/api/users/logout', userController.logout);
+userRouter.post('/api/users/update', userController.updatePassword);
+userRouter.post('/api/users/update/reset', adminMiddleware, userController.resetPassword);
+userRouter.post('/api/users/update/super', superadminMiddleware, userController.resetPassword);
 
 // PROFILE API
 userRouter.post('/api/profile', profileController.create);

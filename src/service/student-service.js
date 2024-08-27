@@ -9,6 +9,7 @@ import { getSchoolValidation } from "../validation/school-validation.js";
 import { createStudentAddressValidation, createStudentValidation, getAllStudentValidation, getStudentAddressValidation, getStudentValidation, studentAssignToClassValidation, updateStudentAddressValidation } from "../validation/student-validation.js"
 import { validate } from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
+import bcrypt from 'bcrypt';
 
 const create = async (request) => {
     request = validate(createStudentValidation, request);
@@ -76,6 +77,8 @@ const create = async (request) => {
 
     studentCode = date.getFullYear() + studentId.padStart(5, "0");
 
+    registerStudentAsUser(studentCode);
+
     return prismaClient.students.update({
         where: {
             id: parseInt(studentId)
@@ -92,6 +95,25 @@ const create = async (request) => {
             student_address: true
         }
     });
+}
+
+
+/**
+ * Register a student as user, so they can logging in.
+ * 
+ * @param {String} studentCode 
+ */
+const registerStudentAsUser = async (studentCode) => {
+    const password = await bcrypt.hash('default', 10);
+
+    return prismaClient.user.create({
+        data: {
+            email: studentCode + '@findlesson.com',
+            password: password,
+            username: studentCode ,
+            role: 'student'
+        }
+    })
 }
 
 const createAddress = async (request) => {
